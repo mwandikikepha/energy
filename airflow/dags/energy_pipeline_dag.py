@@ -6,12 +6,18 @@ ingest → raw_load → validate → transform → curated_load
 Each task is independent and receives the batch_id via XCom
 so every record across every collection is traceable to this run.
 """
+import sys
+import os
+# Force Airflow to see your project folder
+
+sys.path.insert(0, os.path.abspath("/home/kepha/energy_platform"))
+
 import asyncio
 from datetime import datetime, timezone
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
+from datetime import datetime, timedelta
 
 
 # ── Default args applied to every task ────────────────────────────────────
@@ -108,7 +114,7 @@ with DAG(
     description="Daily global energy price ingestion pipeline",
     default_args=default_args,
     schedule="0 6 * * *",  # every day at 06:00 UTC
-    start_date=days_ago(1),
+    start_date=datetime(2026, 1, 1),
     catchup=False,                  # don't backfill missed runs on first deploy
     tags=["energy", "ingestion"],
 ) as dag:
