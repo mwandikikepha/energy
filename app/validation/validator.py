@@ -14,23 +14,7 @@ RULES = [
 
 
 def validate(records: list[dict]) -> dict:
-    """
-    Run all rules against every record.
-
-    Returns:
-        {
-            "total":         int,
-            "valid_count":   int,
-            "invalid_count": int,
-            "valid_records": [...],   # passed to transformer
-            "failures": {
-                "null_check":     {"count": int, "samples": [...]},
-                "price_type":     {"count": int, "samples": [...]},
-                "negative_price": {"count": int, "samples": [...]},
-                "valid_product":  {"count": int, "samples": [...]},
-            }
-        }
-    """
+   
     valid_records = []
     failures = {name: {"count": 0, "samples": []} for name, _ in RULES}
 
@@ -49,7 +33,7 @@ def validate(records: list[dict]) -> dict:
                         "reason":       reason,
                     })
                 passed_all = False
-                break  # one failure per record is enough
+                break  
 
         if passed_all:
             valid_records.append(record)
