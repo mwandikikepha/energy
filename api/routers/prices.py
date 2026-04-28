@@ -10,10 +10,9 @@ def latest_prices(
     product: str | None = Query(default=None, description="Filter by product type: gasoline, diesel, lpg, electricity"),
     country: str | None = Query(default=None, description="Filter by country name"),
 ):
-    """
-    Returns the latest price per country per product.
-    Optionally filter by product type or country name.
-    """
+   
+   # Returns the latest price per country per product.
+  
     records = get_latest_prices()
 
     if product:
