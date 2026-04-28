@@ -2,6 +2,7 @@ FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y \
     build-essential \
+    libpq-dev \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
@@ -13,7 +14,7 @@ COPY . .
 
 RUN uv pip install --system \
     "fastapi[standard]" \
-    "uvicorn[standard]" \
+    "uvicorn" \
     "jinja2" \
     "python-multipart" \
     "requests" \
@@ -23,12 +24,16 @@ RUN uv pip install --system \
     "python-dotenv" \
     "pydantic" \
     "pydantic-settings" \
-    "httpx"
+    "httpx" \
+    "apache-airflow==2.9.0"
 
+ENV AIRFLOW_HOME=/app/airflow_home
+ENV AIRFLOW__CORE__LOAD_EXAMPLES=False
+ENV AIRFLOW__CORE__DAGS_FOLDER=/app/airflow/dags
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-# Default command is the API — the cron service overrides this in Railway settings
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Skip triggerer to save RAM 
+CMD ["sh", "-c", "airflow db migrate && (airflow scheduler & uvicorn api.main:app --host 0.0.0.0 --port 8000)"]
