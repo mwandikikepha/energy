@@ -18,25 +18,19 @@ COUNTRY_NAME_MAP = {
 
 
 def make_id(record: dict) -> str:
-    """
-    Deterministic document ID built from business key fields.
-    Same country + product + date always produces the same _id,
-    making every curated upsert idempotent — rerunning the pipeline
-    on the same day updates in place rather than creating duplicates.
-    """
+   
+   # Deterministic document ID built from business key fields.  Same country + product + date always produces the same _id,
+   # making every curated upsert idempotent — rerunning the pipeline
+    #on the same day updates in place rather than creating duplicates.
+    
     return f"{record['country']}|{record['product_type']}|{record['reporting_date']}"
 
 
 def transform(valid_records: list[dict]) -> list[dict]:
-    """
-    Normalise valid records into the final curated document shape.
+  
+    # Normalise valid records into the final curated document shape.
 
-    Changes applied:
-    - price cast to float
-    - country name standardised via COUNTRY_NAME_MAP
-    - deterministic _id added for idempotent upserts
-    - transformed_at timestamp added
-    """
+
     transformed = []
 
     for record in valid_records:
