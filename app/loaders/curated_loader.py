@@ -17,13 +17,12 @@ def get_db():
 
 
 def load_curated(transformed_records: list[dict], validation_report: dict, batch_id: str) -> dict:
-    """
-    Upsert clean transformed records into the correct curated collection.
-    Routes fuel products to fuel_prices, electricity to electricity_prices.
-
-    Uses bulk upserts — one operation per collection, not one per record.
-    Updates pipeline_runs with final status and counts when done.
-    """
+    
+    #Upsert clean transformed records into the correct curated collection.
+   
+   # Uses bulk upserts  one operation per collection, not one per record.
+   # Updates pipeline_runs with final status and counts when done.
+    
     db = get_db()
 
     # Group records by target collection
