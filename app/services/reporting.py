@@ -10,11 +10,9 @@ def get_db():
 
 
 def get_latest_prices() -> list[dict]:
-    """
-    Latest price per country per product across both curated collections.
-    Pulls the most recently ingested record for each unique
-    country + product_type combination.
-    """
+   
+   # Latest price per country per product across both curated collections.
+  
     db = get_db()
     results = []
 
@@ -55,13 +53,9 @@ def get_latest_prices() -> list[dict]:
 
 
 def get_price_movers(top_n: int = 5) -> dict:
-    """
-    Compare the two most recent batches per country per product.
-    Returns the top N countries with the biggest price increases
-    and top N with the biggest decreases.
-
-    If only one batch exists (first ever run), returns empty lists.
-    """
+   
+  #  Compare the two most recent batches per country per product.
+ 
     db = get_db()
 
     # Get the two most recent distinct reporting dates
@@ -115,9 +109,9 @@ def get_price_movers(top_n: int = 5) -> dict:
 
 
 def get_pipeline_summary() -> dict:
-    """
-    Latest pipeline run status and data quality summary.
-    """
+    
+   # Latest pipeline run status and data quality summary.
+   
     db = get_db()
 
     run = db["pipeline_runs"].find_one(
@@ -147,10 +141,10 @@ def get_pipeline_summary() -> dict:
 
 
 def get_price_history(country: str, product: str) -> list[dict]:
-    """
-    Returns daily price snapshots for a given country + product
-    across all available reporting dates. Used for trend display.
-    """
+    
+   # Returns daily price snapshots for a given country + product 
+    
+   
     db = get_db()
 
     collection = "electricity_prices" if product == "electricity" else "fuel_prices"
@@ -164,7 +158,7 @@ def get_price_history(country: str, product: str) -> list[dict]:
 
 
 def get_all_dates() -> list[str]:
-    """Returns all distinct reporting dates across fuel and electricity."""
+    #Returns all distinct reporting dates across fuel and electricity.
     db = get_db()
     dates = set(db["fuel_prices"].distinct("reporting_date"))
     dates.update(db["electricity_prices"].distinct("reporting_date"))
