@@ -1,7 +1,4 @@
-"""
-Individual validation rule functions.
-Each rule takes a single record and returns (passed: bool, reason: str).
-"""
+
 
 REQUIRED_FIELDS = ["country", "product_type", "price", "currency", "unit", "source", "reporting_date"]
 
