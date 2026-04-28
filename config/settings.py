@@ -3,7 +3,7 @@ import os
 
 
 class Settings(BaseSettings):
-    # These names must match your .env keys (case-insensitive)
+   
     collect_api:   str 
     mongo_url:     str 
     database_name: str = "energy_db"
