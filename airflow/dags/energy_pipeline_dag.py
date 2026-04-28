@@ -1,15 +1,8 @@
-"""
-Energy Platform DAG
-Runs daily at 06:00 UTC. Orchestrates the full pipeline:
-ingest → raw_load → validate → transform → curated_load
 
-Each task is independent and receives the batch_id via XCom
-so every record across every collection is traceable to this run.
-"""
 import sys
 import os
-# Force Airflow to see your project folder
 
+# I added this when running locally. Has no effect in production.
 sys.path.insert(0, os.path.abspath("/home/kepha/energy_platform"))
 
 import asyncio
@@ -20,22 +13,20 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 
-# ── Default args applied to every task ────────────────────────────────────
 default_args = {
     "owner":            "kepha_energy",
     "retries":          3,
-    "retry_delay":      300,  # 5 minutes between retries
+    "retry_delay":      300,  
     "email_on_failure": False,
 }
 
 
-# ── Task functions ─────────────────────────────────────────────────────────
 
 def ingest(**context):
-    """
-    Generate batch metadata, fetch fuel + electricity records,
-    combine into a single list, push to XCom for next task.
-    """
+  
+   # Generate batch metadata, fetch fuel + electricity records,   combine into a single list, push to XCom for next task.
+  
+   
     from app.ingestion.ingestion_metadata import get_run_metadata
     from app.ingestion.collectapi_client import fetch_all_fuel_prices
     from app.ingestion.electricity_scraper import fetch_electricity_prices
@@ -54,10 +45,9 @@ def ingest(**context):
 
 
 def raw_load(**context):
-    """
-    Pull ingested records from XCom and insert into raw_api_data.
-    Also creates the pipeline_runs document with status: running.
-    """
+    
+   # Pull ingested records from XCom and insert into raw_api_data.
+   
     from app.loaders.raw_loader import load_raw
 
     ti          = context["ti"]
@@ -69,10 +59,9 @@ def raw_load(**context):
 
 
 def validate(**context):
-    """
-    Pull raw records from XCom, run all quality rules,
-    push validation report (including valid_records) forward.
-    """
+  
+    # Pull raw records from XCom, run all quality rules,  push validation report forward.
+   
     from app.validation.validator import validate as run_validation
 
     ti          = context["ti"]
@@ -90,10 +79,9 @@ def validate(**context):
 
 
 def transform_and_load(**context):
-    """
-    Transform valid records and upsert into curated collections.
-    Saves quality check report and closes the pipeline_runs document.
-    """
+  
+    #Transform valid records and upsert into curated collections.
+ 
     from app.transformation.transformer import transform
     from app.loaders.curated_loader import load_curated
 
@@ -108,14 +96,14 @@ def transform_and_load(**context):
     print(f"Pipeline run {run_meta['batch_id']} finished successfully")
 
 
-# ── DAG definition ─────────────────────────────────────────────────────────
+
 with DAG(
     dag_id="energy_pipeline",
     description="Daily global energy price ingestion pipeline",
     default_args=default_args,
     schedule="0 6 * * *",  # every day at 06:00 UTC
     start_date=datetime(2026, 1, 1),
-    catchup=False,                  # don't backfill missed runs on first deploy
+    catchup=False,                 
     tags=["energy", "ingestion"],
 ) as dag:
 
@@ -139,5 +127,5 @@ with DAG(
         python_callable=transform_and_load,
     )
 
-    # ── Task dependencies ──────────────────────────────────────────────────
+    
     t1_ingest >> t2_raw_load >> t3_validate >> t4_transform_and_load
