@@ -1,6 +1,6 @@
 # Fuelwatch Global — Energy Price Data Platform
 
-A production-grade data engineering platform that ingests global fuel and electricity prices from multiple sources, processes them through a quality-controlled pipeline, stores curated data in MongoDB Atlas, and serves it through a FastAPI dashboard.
+A production-grade data engineering platform that ingests global fuel and electricity prices from multiple sources, processes them through a quality-controlled pipeline, stores curated data in MongoDB Atlas, automates the whole process using airflow, and serves it through a FastAPI dashboard.
 
 Live at: `https://energy-production-7ace.up.railway.app/`
 
@@ -37,7 +37,7 @@ GlobalPetrolPrices (electricity scrape) ─┘
                                           │  / (dashboard)      │
                                           └────────────────────┘
 
-Scheduling: Railway Cron Job (daily 06:00 UTC) — replaces Airflow in production
+Scheduling: Apache Airflow DAG (daily 06:00 UTC) — Airflow in production
 Local dev:  Apache Airflow DAG (energy_pipeline_dag.py)
 ```
 
@@ -127,7 +127,6 @@ energy_platform/
 ├── Dockerfile
 ├── railway.toml
 ├── pyproject.toml
-└── .env.example
 ```
 
 ---
@@ -171,8 +170,8 @@ Each record carries a `batch_id` through every step. Curated writes use `country
 
 ```bash
 # Clone and enter
-git clone https://github.com/mwandikikepha/energy-platform.git
-cd energy-platform
+git clone https://github.com/mwandikikepha/energy.git
+cd energy
 
 # Install dependencies
 uv sync
@@ -198,19 +197,19 @@ Open `http://localhost:8000`
 # Build
 docker build -t energy-platform .
 
-# Run (pass your env vars)
+# Run 
 docker run -p 8000:8000 \
   -e MONGO_URL=your_atlas_uri \
   -e DATABASE_NAME=energy_platform \
   -e COLLECT_API=your_token \
-  energy-platform
+  energy
 ```
 
 ---
 
 ## Airflow (local development)
 
-The Airflow DAG runs the same pipeline on a schedule locally. Useful for development and testing before the Railway cron job takes over in production.
+The Airflow DAG runs the same pipeline on a schedule locally. Useful for development and testing before going over in production over in production.
 
 ```bash
 export AIRFLOW_HOME=~/airflow_home
@@ -232,10 +231,10 @@ Two services, one Dockerfile:
 - Build: Docker
 - Start command: `uvicorn api.main:app --host 0.0.0.0 --port 8000`
 
-**Cron service** — runs the pipeline daily
+**Apache Airflow** — runs the pipeline daily
 - Build: same Dockerfile
-- Start command override: `python run_pipeline.py`
-- Cron schedule: `0 6 * * *`
+- Start command override: `energy_pipeline_dag.py`
+- Schedule: `0 6 * * *`
 
 Both services share the same environment variables pointing to MongoDB Atlas.
 
