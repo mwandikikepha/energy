@@ -1,32 +1,32 @@
-
 import sys
 import os
 
-# I added this when running locally. Has no effect in production.
-sys.path.insert(0, os.path.abspath("/home/kepha/energy_platform"))
+# Works on both local and Railway
+# On Railway: PYTHONPATH=/app is set in Dockerfile
+# Locally: falls back to calculating from this file's location
+project_root = os.environ.get("PYTHONPATH", "").split(":")[0]
+if not project_root:
+    # __file__ = /home/kepha/energy_platform/airflow/dags/energy_pipeline_dag.py
+    # go up two levels to get energy_platform/
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import asyncio
-from datetime import datetime, timezone
-
+from datetime import datetime
 from airflow import DAG
-from airflow.operators.python import PythonOperator
-from datetime import datetime, timedelta
-
+from airflow.providers.standard.operators.python import PythonOperator
 
 default_args = {
     "owner":            "kepha_energy",
     "retries":          3,
-    "retry_delay":      300,  
+    "retry_delay":      300,
     "email_on_failure": False,
 }
 
 
-
 def ingest(**context):
-  
-   # Generate batch metadata, fetch fuel + electricity records,   combine into a single list, push to XCom for next task.
-  
-   
     from app.ingestion.ingestion_metadata import get_run_metadata
     from app.ingestion.collectapi_client import fetch_all_fuel_prices
     from app.ingestion.electricity_scraper import fetch_electricity_prices
@@ -45,9 +45,6 @@ def ingest(**context):
 
 
 def raw_load(**context):
-    
-   # Pull ingested records from XCom and insert into raw_api_data.
-   
     from app.loaders.raw_loader import load_raw
 
     ti          = context["ti"]
@@ -59,15 +56,11 @@ def raw_load(**context):
 
 
 def validate(**context):
-  
-    # Pull raw records from XCom, run all quality rules,  push validation report forward.
-   
     from app.validation.validator import validate as run_validation
 
     ti          = context["ti"]
     all_records = ti.xcom_pull(task_ids="ingest", key="all_records")
-
-    report = run_validation(all_records)
+    report      = run_validation(all_records)
 
     print(f"Validation — total: {report['total']} | valid: {report['valid_count']} | invalid: {report['invalid_count']}")
     if report["invalid_count"] > 0:
@@ -79,14 +72,11 @@ def validate(**context):
 
 
 def transform_and_load(**context):
-  
-    #Transform valid records and upsert into curated collections.
- 
     from app.transformation.transformer import transform
     from app.loaders.curated_loader import load_curated
 
-    ti      = context["ti"]
-    report  = ti.xcom_pull(task_ids="validate", key="validation_report")
+    ti       = context["ti"]
+    report   = ti.xcom_pull(task_ids="validate", key="validation_report")
     run_meta = ti.xcom_pull(task_ids="ingest",   key="run_meta")
 
     clean_records = transform(report["valid_records"])
@@ -96,14 +86,13 @@ def transform_and_load(**context):
     print(f"Pipeline run {run_meta['batch_id']} finished successfully")
 
 
-
 with DAG(
     dag_id="energy_pipeline",
     description="Daily global energy price ingestion pipeline",
     default_args=default_args,
-    schedule="0 6 * * *",  # every day at 06:00 UTC
+    schedule="0 6 * * *",
     start_date=datetime(2026, 1, 1),
-    catchup=False,                 
+    catchup=False,
     tags=["energy", "ingestion"],
 ) as dag:
 
@@ -127,5 +116,4 @@ with DAG(
         python_callable=transform_and_load,
     )
 
-    
     t1_ingest >> t2_raw_load >> t3_validate >> t4_transform_and_load
