@@ -16,7 +16,7 @@ if project_root not in sys.path:
 import asyncio
 from datetime import datetime
 from airflow import DAG
-from airflow.providers.standard.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator
 
 default_args = {
     "owner":            "kepha_energy",
