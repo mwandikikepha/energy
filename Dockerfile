@@ -39,13 +39,6 @@ EXPOSE 8000
 
 CMD ["sh", "-c", "\
     airflow db migrate && \
-    echo '=== DAG folder ===' && \
-    ls -la /app/airflow/dags/ && \
-    echo '=== Listing DAGs ===' && \
-    airflow dags list 2>&1 || true && \
-    echo '=== DAG report ===' && \
-    airflow dags report 2>&1 || true && \
-    echo '=== Starting services ===' && \
     airflow scheduler & \
     uvicorn api.main:app --host 0.0.0.0 --port 8000 \
 "]
