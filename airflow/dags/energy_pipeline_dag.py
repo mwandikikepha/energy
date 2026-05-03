@@ -1,9 +1,9 @@
 import sys
 import os
 
-# Works on both local and Railway
-# On Railway: PYTHONPATH=/app is set in Dockerfile
-# Locally: falls back to calculating from this file's location
+
+# PYTHONPATH=/app for deployment
+# Locally: falls back to local
 project_root = os.environ.get("PYTHONPATH", "").split(":")[0]
 if not project_root:
     # __file__ = /home/kepha/energy_platform/airflow/dags/energy_pipeline_dag.py
@@ -90,7 +90,7 @@ with DAG(
     dag_id="energy_pipeline",
     description="Daily global energy price ingestion pipeline",
     default_args=default_args,
-    schedule="0 6 * * *",
+    schedule="0 3 * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["energy", "ingestion"],
