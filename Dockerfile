@@ -14,7 +14,7 @@ COPY . .
 
 RUN uv pip install --system \
     "fastapi[standard]" \
-    "uvicorn" \
+    "uvicorn[standard]" \
     "jinja2" \
     "python-multipart" \
     "requests" \
@@ -27,13 +27,23 @@ RUN uv pip install --system \
     "httpx" \
     "apache-airflow==2.9.0"
 
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 ENV AIRFLOW_HOME=/app/airflow_home
 ENV AIRFLOW__CORE__LOAD_EXAMPLES=False
 ENV AIRFLOW__CORE__DAGS_FOLDER=/app/airflow/dags
-ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
+ENV AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=30
+ENV AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL=30
 
 EXPOSE 8000
 
-# Skip triggerer to save RAM 
-CMD ["sh", "-c", "airflow db migrate && (airflow scheduler & uvicorn api.main:app --host 0.0.0.0 --port 8000)"]
+CMD ["sh", "-c", "\
+    airflow db migrate && \
+    echo '=== DAG folder contents ===' && \
+    ls -la /app/airflow/dags/ && \
+    echo '=== Testing DAG import ===' && \
+    python -c 'import sys; sys.path.insert(0, \"/app\"); import airflow.dags; exec(open(\"/app/airflow/dags/energy_pipeline_dag.py\").read())' 2>&1 || true && \
+    echo '=== Starting services ===' && \
+    airflow scheduler & \
+    uvicorn api.main:app --host 0.0.0.0 --port 8000 \
+"]
