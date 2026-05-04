@@ -93,6 +93,7 @@ with DAG(
     schedule="0 3 * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    is_paused_upon_creation=False, 
     tags=["energy", "ingestion"],
 ) as dag:
 
