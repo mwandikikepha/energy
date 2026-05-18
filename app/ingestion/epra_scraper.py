@@ -39,7 +39,7 @@ FALLBACK_PRICES = [
     {"town": "Embu",     "product_type": "kerosene", "price_kes": 154.31},
 ]
 
-# USD/KES exchange rate — update monthly alongside EPRA prices
+
 # Current rate used in May 2026 EPRA computation: 130.08
 USD_KES_RATE = 130.08
 
