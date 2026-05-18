@@ -2,8 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from api.routers import prices, reports
-from api.routers import prices, reports, admin, kenya
+from api.routers import prices, reports, kenya
 
 app = FastAPI(
     title="Global Energy Price Platform",
