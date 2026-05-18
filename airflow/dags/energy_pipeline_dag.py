@@ -85,18 +85,15 @@ def transform_and_load(**context):
 
     db = MongoClient(settings.mongo_url)[settings.database_name]
 
-    # 1. Transform + load global records
     clean_records = transform(report["valid_records"])
     summary       = load_curated(clean_records, report, run_meta["batch_id"])
     print(f"Global curated load — {summary['upserted_counts']}")
 
-    # 2. Kenya KES prices → kenya_prices collection (all towns, KES)
     if kenya_kes_records:
         db["kenya_prices"].insert_many(kenya_kes_records)
         print(f"Kenya KES records → kenya_prices: {len(kenya_kes_records)}")
 
-    # 3. Kenya USD prices → fuel_prices collection (Nairobi only, USD)
-    # This makes Kenya appear correctly in global comparisons
+
     if kenya_usd_records:
         clean_kenya_usd = transform(kenya_usd_records)
         for r in clean_kenya_usd:
