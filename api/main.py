@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from api.routers import prices, reports
+from api.routers import prices, reports, admin, kenya
 
 app = FastAPI(
     title="Global Energy Price Platform",
@@ -15,7 +16,7 @@ templates = Jinja2Templates(directory="api/templates")
 
 app.include_router(prices.router,  prefix="/api")
 app.include_router(reports.router, prefix="/api")
-
+app.include_router(kenya.router, prefix="/api")
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):

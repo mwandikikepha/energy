@@ -1,0 +1,38 @@
+name: Energy Pipeline
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # daily at 03:00 UTC (06:00 EAT)
+  workflow_dispatch:        # allows manual trigger from GitHub UI
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system \
+            requests beautifulsoup4 lxml \
+            pymongo python-dotenv \
+            pydantic pydantic-settings httpx
+
+      - name: Run pipeline
+        env:
+          MONGO_URL:     ${{ secrets.MONGO_URL }}
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          COLLECT_API:   ${{ secrets.COLLECT_API }}
+          ENVIRONMENT:   production
+          DEBUG:         false
+        run: uv run python test.py
