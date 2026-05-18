@@ -30,12 +30,16 @@ COUNTRY_NAME_MAP = {
 
 
 async def fetch_electricity_prices(batch_id: str) -> list[dict]:
-    async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-        try:
+    try:
+        async with httpx.AsyncClient(timeout=60, follow_redirects=True, limits=httpx.Limits(max_connections=5)) as client:
             response = await client.get(GPP_URL, headers=HEADERS)
             response.raise_for_status()
-        except Exception as e:
-            raise RuntimeError(f"Failed to reach GlobalPetrolPrices: {e}")
+    except httpx.TimeoutException as e:
+        raise RuntimeError(f"Timeout reaching GlobalPetrolPrices (after 60s): {e}")
+    except httpx.ConnectError as e:
+        raise RuntimeError(f"Failed to connect to GlobalPetrolPrices: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Failed to reach GlobalPetrolPrices: {e}")
 
     soup = BeautifulSoup(response.text, "lxml")
 
