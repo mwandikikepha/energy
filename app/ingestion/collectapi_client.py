@@ -1,6 +1,5 @@
 import http.client
 import json
-import time
 from datetime import datetime, timezone
 
 from config.settings import settings
@@ -42,11 +41,16 @@ def fetch_product(product: str) -> list[dict]:
         "authorization": f"apikey {settings.collect_api}",
     }
 
-    conn = http.client.HTTPSConnection(COLLECTAPI_HOST, timeout=45)
-    conn.request("GET", ENDPOINTS[product], headers=headers)
-    res = conn.getresponse()
-    raw = res.read().decode("utf-8")
-    conn.close()
+    try:
+        conn = http.client.HTTPSConnection(COLLECTAPI_HOST, timeout=45)
+        conn.request("GET", ENDPOINTS[product], headers=headers)
+        res = conn.getresponse()
+        raw = res.read().decode("utf-8")
+        conn.close()
+    except TimeoutError as e:
+        raise RuntimeError(f"CollectAPI {product} timeout (after 45s): {e}")
+    except Exception as e:
+        raise RuntimeError(f"CollectAPI {product} connection error: {e}")
 
     if res.status != 200:
         raise RuntimeError(f"CollectAPI {product} returned HTTP {res.status}: {raw}")
@@ -82,6 +86,5 @@ def fetch_all_fuel_prices(batch_id: str) -> list[dict]:
                 "reporting_date":      reporting_date,
                 "batch_id":            batch_id,
             })
-        time.sleep(2)
 
     return records
