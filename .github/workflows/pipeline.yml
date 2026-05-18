@@ -2,8 +2,8 @@ name: Energy Pipeline
 
 on:
   schedule:
-    - cron: "0 3 * * *"   # daily at 03:00 UTC (06:00 EAT)
-  workflow_dispatch:        # allows manual trigger from GitHub UI
+    - cron: "0 3 * * *"   
+  workflow_dispatch:       
 
 jobs:
   run-pipeline:
